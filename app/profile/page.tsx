@@ -7,7 +7,7 @@ const UserProfile = () => {
         first_name: "John",
         last_name: "Doe",
         email: "john.doe@example.com",
-        avatar: "https://th.bing.com/th/id/OIP.v3WfYag0YBfN5dAlG3pA6wHaHa?rs=1&pid=ImgDetMain", // Đường dẫn ảnh placeholder
+        avatar: "https://th.bing.com/th/id/OIP.v3WfYag0YBfN5dAlG3pA6wHaHa?rs=1&pid=ImgDetMain",
     });
 
     const [isEditing, setIsEditing] = useState(false);
