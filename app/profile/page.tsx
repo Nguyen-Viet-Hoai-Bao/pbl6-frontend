@@ -1,37 +1,116 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { refreshAccessToken } from "@/app/api/refresh_token/route";
 
 const UserProfile = () => {
     const [user, setUser] = useState({
-        first_name: "John",
-        last_name: "Doe",
-        email: "john.doe@example.com",
-        avatar: "https://th.bing.com/th/id/OIP.v3WfYag0YBfN5dAlG3pA6wHaHa?rs=1&pid=ImgDetMain",
+        first_name: "",
+        last_name: "",
+        email: "",
+        avatar: "",
     });
-
     const [isEditing, setIsEditing] = useState(false);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const accessToken = localStorage.getItem("access");
+            const expirationTime = localStorage.getItem("expiration");
+
+            if (accessToken) {
+                if (expirationTime && Date.now() < parseInt(expirationTime)) {
+                    try {
+                        const response = await fetch(`${apiUrl}/users/me`, {
+                            method: "GET",
+                            headers: {
+                                "Authorization": `Bearer ${accessToken}`,
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error("Failed to fetch user data");
+                        }
+
+                        const data = await response.json();
+                        setUser(data);
+                    } catch (error) {
+                        console.error(error);
+                        toast.error("Failed to fetch user data");
+                    }
+                } else {
+                    await refreshAccessToken();
+                }
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setUser({ ...user, [name]: value });
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setUser((prevUser) => ({ ...prevUser, avatar: reader.result as string }));
+            reader.onloadend = async () => {
+                const avatarBase64 = reader.result;
+                const accessToken = localStorage.getItem("access");
+
+                if (accessToken) {
+                    try {
+                        const response = await fetch(`${apiUrl}/users/me`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            },
+                            body: JSON.stringify({ avatar: avatarBase64 })
+                        });
+                        if (response.ok) {
+                            const updatedUser = await response.json();
+                            setUser(updatedUser);
+                        } else {
+                            console.error("Failed to update avatar");
+                        }
+                    } catch (error) {
+                        console.error("Error updating avatar:", error);
+                    }
+                }
             };
             reader.readAsDataURL(file);
         }
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log("Updated User Info:", user);
-        setIsEditing(false);
+        const accessToken = localStorage.getItem("access");
+
+        if (accessToken) {
+            try {
+                const response = await fetch(`${apiUrl}/users/me`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(user)
+                });
+                if (response.ok) {
+                    const updatedUser = await response.json();
+                    setUser(updatedUser);
+                    setIsEditing(false);
+                } else {
+                    console.error("Failed to update user profile");
+                }
+            } catch (error) {
+                console.error("Error updating user profile:", error);
+            }
+        }
     };
 
     const handleCancel = () => {
@@ -93,7 +172,6 @@ const UserProfile = () => {
                                 type="file"
                                 accept="image/*"
                                 onChange={handleFileChange}
-                                required
                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base"
                             />
                         </div>

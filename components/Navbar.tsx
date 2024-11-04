@@ -1,23 +1,61 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { signOut, useSession } from "next-auth/react";
-
-import { useState } from "react";
+import { signOut } from "next-auth/react";
 import { Dialog } from "@headlessui/react";
 import { FaBars } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
 import Image from "next/image";
+import toast from "react-hot-toast";
+import { refreshAccessToken } from "@/app/api/refresh_token/route";
 
 const Navbar = () => {
-  const { data: session }: any = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  const navigation = [
-    { name: "Home", href: "/" },
+  const baseNavigation = [
     { name: "Dashboard", href: "/dashboard" },
     { name: "Profile", href: "/profile" },
   ];
+
+  const navigation = user
+    ? [{ name: "Home", href: "/detect" }, ...baseNavigation]
+    : [{ name: "Home", href: "/" }];
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const accessToken = localStorage.getItem("access");
+      const expirationTime = localStorage.getItem("expiration");
+
+      if (accessToken) {
+        if (expirationTime && Date.now() < parseInt(expirationTime)) {
+          try {
+            const response = await fetch(`${apiUrl}/users/me`, {
+              method: "GET",
+              headers: {
+                "Authorization": `Bearer ${accessToken}`,
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error("Failed to fetch user data");
+            }
+
+            const data = await response.json();
+            setUser(data.email);
+          } catch (error) {
+            console.error(error);
+            toast.error("Failed to fetch user data");
+          }
+        } else {
+          await refreshAccessToken();
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   return (
     <>
@@ -44,7 +82,7 @@ const Navbar = () => {
             ))}
           </div>
           <div className="flex flex-1 items-center justify-end gap-x-6">
-            {!session ? (
+            {!user ? (
               <>
                 <Link
                   href="/login"
@@ -61,11 +99,13 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <span className="ml-10 text-sm">{session.user?.email}</span>
-
+                <span className="ml-10 text-sm">{user}</span>
                 <button
                   onClick={() => {
                     signOut();
+                    localStorage.removeItem("access");
+                    localStorage.removeItem("refresh");
+                    localStorage.removeItem("expiration");
                   }}
                   className="hidden lg:block lg:text-sm lg:font-semibold lg:leading-6 lg:text-gray-900"
                 >
@@ -103,10 +143,13 @@ const Navbar = () => {
                   alt="star logo mobile"
                 />
               </Link>
-              {session ? (
+              {user ? (
                 <button
                   onClick={() => {
                     signOut();
+                    localStorage.removeItem("access");
+                    localStorage.removeItem("refresh");
+                    localStorage.removeItem("expiration");
                   }}
                   className="ml-auto rounded-md bg-black border border-1 border-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 >
@@ -120,7 +163,6 @@ const Navbar = () => {
                   Sign up
                 </Link>
               )}
-
               <button
                 type="button"
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"

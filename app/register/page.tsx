@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
-const RegisterPage = () => {
-  const [error, setError] = useState("");
+const RegisterPage: React.FC = () => {
+  const [error, setError] = useState<string>("");
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (sessionStatus === "authenticated") {
@@ -15,15 +16,19 @@ const RegisterPage = () => {
     }
   }, [sessionStatus, router]);
 
-  const isValidEmail = (email: string) => {
+  const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
     return emailRegex.test(email);
   };
-  const handleSubmit = async (e: any) => {
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const email = e.target[0].value;
-    const password = e.target[1].value;
-    const confirmPassword = e.target[2].value;
+    const formData = new FormData(e.currentTarget);
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
 
     if (!isValidEmail(email)) {
       setError("Email is invalid");
@@ -32,47 +37,52 @@ const RegisterPage = () => {
     }
 
     if (!password || password.length < 8) {
-      setError("Password is invalid");
-      toast.error("Password is invalid");
+      setError("Password must be at least 8 characters");
+      toast.error("Password must be at least 8 characters");
       return;
     }
 
     if (confirmPassword !== password) {
-      setError("Passwords are not equal");
-      toast.error("Passwords are not equal")
+      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     try {
-      const res = await fetch("/api/register", {
+      const res = await fetch(`${apiUrl}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
           email,
           password,
         }),
       });
-      if (res.status === 400) {
-        toast.error("This email is already registered")
-        setError("The email already in use");
+
+      if (!res.ok) {
+        const responseError = await res.json();
+        toast.error(responseError.message || "Registration failed");
+        setError(responseError.message || "Error occurred");
+        return;
       }
-      if (res.status === 200) {
-        setError("");
-        toast.success("Registration successful");
-        router.push("/login");
-      }
+
+      setError("");
+      toast.success("Registration successful");
+      router.push("/login");
     } catch (error) {
-      toast.error("Error, try again")
-      setError("Error, try again");
-      console.log(error);
+      console.error("Registration error:", error);
+      toast.error("An error occurred, please try again");
+      setError("An error occurred, please try again");
     }
   };
 
   if (sessionStatus === "loading") {
     return <h1>Loading...</h1>;
   }
+
   return (
     sessionStatus !== "authenticated" && (
       <div className="flex min-h-full flex-1 flex-col justify-center sm:px-6 lg:px-8">
@@ -86,10 +96,37 @@ const RegisterPage = () => {
           <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium leading-6 text-gray-900"
-                >
+                <label htmlFor="firstName" className="block text-sm font-medium leading-6 text-gray-900">
+                  First Name
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium leading-6 text-gray-900">
+                  Last Name
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
                   Email address
                 </label>
                 <div className="mt-2">
@@ -99,16 +136,13 @@ const RegisterPage = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600"
                   />
                 </div>
               </div>
 
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium leading-6 text-gray-900"
-                >
+                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
                   Password
                 </label>
                 <div className="mt-2">
@@ -118,26 +152,22 @@ const RegisterPage = () => {
                     type="password"
                     autoComplete="current-password"
                     required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600"
                   />
                 </div>
               </div>
 
               <div>
-                <label
-                  htmlFor="confirmpassword"
-                  className="block text-sm font-medium leading-6 text-gray-900"
-                >
-                  Confirm password
+                <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-gray-900">
+                  Confirm Password
                 </label>
                 <div className="mt-2">
                   <input
-                    id="confirmpassword"
-                    name="confirmpassword"
+                    id="confirmPassword"
+                    name="confirmPassword"
                     type="password"
-                    autoComplete="current-password"
                     required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600"
                   />
                 </div>
               </div>
@@ -145,15 +175,12 @@ const RegisterPage = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <input
-                    id="remember-me"
-                    name="remember-me"
+                    id="terms"
+                    name="terms"
                     type="checkbox"
                     className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
                   />
-                  <label
-                    htmlFor="remember-me"
-                    className="ml-3 block text-sm leading-6 text-gray-900"
-                  >
+                  <label htmlFor="terms" className="ml-3 block text-sm leading-6 text-gray-900">
                     Accept our terms and privacy policy
                   </label>
                 </div>
