@@ -36,7 +36,6 @@ const UserProfile = () => {
                         const data = await response.json();
                         setUser(data);
                     } catch (error) {
-                        console.error(error);
                         toast.error("Failed to fetch user data");
                     }
                 } else {
@@ -55,42 +54,80 @@ const UserProfile = () => {
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                const avatarBase64 = reader.result;
-                const accessToken = localStorage.getItem("access");
+        let mimeType: string | undefined;
 
-                if (accessToken) {
-                    try {
-                        const response = await fetch(`${apiUrl}/users/me`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${accessToken}`
-                            },
-                            body: JSON.stringify({ avatar: avatarBase64 })
-                        });
-                        if (response.ok) {
-                            const updatedUser = await response.json();
-                            setUser(updatedUser);
-                        } else {
-                            console.error("Failed to update avatar");
+        if (file) {
+            const fileExtension = file.name.split('.').pop()?.toLowerCase();
+            mimeType = `image/${fileExtension}`;
+        }
+
+        const expirationTime = localStorage.getItem("expiration");
+        if (expirationTime && Date.now() < parseInt(expirationTime)) {
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    const avatarBase64 = reader.result;
+                    const accessToken = localStorage.getItem("access");
+
+                    if (accessToken) {
+                        try {
+                            const response = await fetch(`${apiUrl}/files/signed-url`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${accessToken}`
+                                },
+                                body: JSON.stringify({ mime_type: mimeType })
+                            });
+                            if (response.ok) {
+                                const data = await response.json();
+                                const upload_url = data.upload_url;
+                                const file_url = data.file_url;
+                                const uploadResponse = await fetch(upload_url, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Authorization': `Bearer ${accessToken}`
+                                    },
+                                    body: file,
+                                });
+
+                                if (uploadResponse.ok) {
+                                    const response = await fetch(`${apiUrl}/users/me`, {
+                                        method: 'PATCH',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${accessToken}`
+                                        },
+                                        body: JSON.stringify({ avatar: file_url })
+                                    });
+                                    if (response.ok) {
+                                        const updatedUser = await response.json();
+                                        setUser(updatedUser);
+                                    } else {
+                                    }
+                                } else {
+                                    toast.error("Failed to upload avatar");
+                                }
+                            } else {
+                                toast.error("Failed to get signed URL");
+                            }
+                        } catch (error) {
+                            toast.error("Error updating avatar");
                         }
-                    } catch (error) {
-                        console.error("Error updating avatar:", error);
                     }
-                }
-            };
-            reader.readAsDataURL(file);
+                };
+                reader.readAsDataURL(file);
+            }
+        } else {
+            await refreshAccessToken();
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         const accessToken = localStorage.getItem("access");
+        const expirationTime = localStorage.getItem("expiration");
 
-        if (accessToken) {
+        if (expirationTime && Date.now() < parseInt(expirationTime)) {
             try {
                 const response = await fetch(`${apiUrl}/users/me`, {
                     method: 'PATCH',
@@ -104,18 +141,22 @@ const UserProfile = () => {
                     const updatedUser = await response.json();
                     setUser(updatedUser);
                     setIsEditing(false);
+                    toast.success("User profile updated successfully!");
                 } else {
-                    console.error("Failed to update user profile");
+                    toast.error("Failed to update user profile");
                 }
             } catch (error) {
-                console.error("Error updating user profile:", error);
+                toast.error("Error updating user profile");
             }
+        } else {
+            await refreshAccessToken();
         }
     };
 
     const handleCancel = () => {
         setIsEditing(false);
     };
+
 
     return (
         <div className="flex pt-20 pb-20 flex-1 flex-row justify-center sm:px-8 lg:px-10">

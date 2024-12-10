@@ -1,20 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
 const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string>("");
   const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  useEffect(() => {
-    if (sessionStatus === "authenticated") {
-      router.replace("/dashboard");
-    }
-  }, [sessionStatus, router]);
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -79,12 +71,7 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  if (sessionStatus === "loading") {
-    return <h1>Loading...</h1>;
-  }
-
   return (
-    sessionStatus !== "authenticated" && (
       <div className="flex min-h-full flex-1 flex-col justify-center sm:px-6 lg:px-8">
         <div className="flex justify-center flex-col items-center">
           <h2 className="mt-6 text-center text-2xl leading-9 tracking-tight text-gray-900">
@@ -201,7 +188,6 @@ const RegisterPage: React.FC = () => {
           </div>
         </div>
       </div>
-    )
   );
 };
 

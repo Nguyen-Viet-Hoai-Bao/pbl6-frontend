@@ -188,7 +188,6 @@
 "use client"; 
 
 import React, { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, CategoryScale } from "chart.js";
 
@@ -199,23 +198,8 @@ const Dashboard = () => {
     const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
     const [loading, setLoading] = useState<boolean>(true);
-    const [session, setSession] = useState<any>(null);
     const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState<boolean>(false);
     const [isYearDropdownOpen, setIsYearDropdownOpen] = useState<boolean>(false);
-
-    // useEffect(() => {
-    //     const fetchSession = async () => {
-    //         const response = await fetch("/api/session"); // Tạo một API endpoint để lấy session
-    //         const sessionData = await response.json();
-    //         if (!sessionData) {
-    //             redirect("/"); // Chuyển hướng nếu không có session
-    //         } else {
-    //             setSession(sessionData);
-    //         }
-    //     };
-        
-    //     fetchSession();
-    // }, []);
 
     useEffect(() => {
         const fetchAccessData = async () => {

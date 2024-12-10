@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
+import { refreshAccessToken } from '../api/refresh_token/route';
 
 export default function Index() {
   const [uploadedImage, setUploadedImage] = useState<string>('');
@@ -39,39 +40,44 @@ export default function Index() {
   };
 
   const handlePaste = async (event: ClipboardEvent) => {
-    const items = event.clipboardData?.items;
-    if (!items) return;
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith('image/')) {
-        const file = items[i].getAsFile();
-        if (file) {
-          const temporaryImageUrl = URL.createObjectURL(file);
-          setUploadedImage(temporaryImageUrl);
+    const expirationTime = localStorage.getItem("expiration");
+    if (expirationTime && Date.now() < parseInt(expirationTime)) {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          const file = items[i].getAsFile();
+          if (file) {
+            const temporaryImageUrl = URL.createObjectURL(file);
+            setUploadedImage(temporaryImageUrl);
 
-          const formData = new FormData();
-          formData.append('file', file);
+            const formData = new FormData();
+            formData.append('file', file);
 
-          try {
-            const response = await fetch('/api/upload', {
-              method: 'POST',
-              body: formData,
-            });
-            const result = await response.json();
+              try {
+                const response = await fetch('/api/upload', {
+                  method: 'POST',
+                  body: formData,
+                });
+                const result = await response.json();
 
-            if (response.ok) {
-              setAnalysisResult(result.analysis);
-              setConfidenceScore(result.confidence);
-            } else {
-              setAnalysisResult(result.analysis);
-              setConfidenceScore(result.confidence);
-            }
-          } catch (error) {
-            setAnalysisResult("likely to contain AI Generated Text");
-            setConfidenceScore("99.9%");
+                if (response.ok) {
+                  setAnalysisResult(result.analysis);
+                  setConfidenceScore(result.confidence);
+                } else {
+                  setAnalysisResult(result.analysis);
+                  setConfidenceScore(result.confidence);
+                }
+              } catch (error) {
+                setAnalysisResult("likely to contain AI Generated Text");
+                setConfidenceScore("99.9%");
+              }
           }
+          break;
         }
-        break;
       }
+    } else {
+      await refreshAccessToken();
     }
   };
 

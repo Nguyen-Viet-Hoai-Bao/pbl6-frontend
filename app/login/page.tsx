@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import toast from "react-hot-toast";
@@ -9,19 +8,56 @@ import toast from "react-hot-toast";
 const NextLoginPage = () => {
   const router = useRouter();
   const [error, setError] = useState("");
-  const { data: session, status: sessionStatus } = useSession();
+  const [providers, setProvider] = useState<any[]>([]);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrlAll = process.env.NEXT_PUBLIC_API_URL_ALL;
 
   useEffect(() => {
-    if (sessionStatus === "authenticated") {
-      router.push("/detect");
-    }
-  }, [sessionStatus, router]);
+    const fetchProvider = async () => {
+      try {
+        const response = await fetch(`${apiUrlAll}/_allauth/browser/v1/config`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("socialaccount:", data.data.socialaccount);
+        setProvider(data.data.socialaccount.providers);
+      } catch (err) {
+        console.error("Failed to fetch providers:", err);
+        toast.error("Failed to fetch providers");
+      }
+    };
+
+    fetchProvider();
+  }, [apiUrlAll]);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
     return emailRegex.test(email);
   };
+
+  async function handleClick(id: string) {
+    const form = document.createElement("form");
+    form.style.display = "none";
+    form.method = "POST";
+    form.action = `${apiUrl}/auth/login/socials`;
+    const data = {
+      provider: id,
+      callback_url: "http://localhost:3000/redirect",
+    };
+    console.log(data);
+
+    Object.entries(data).forEach(([k, v]) => {
+      const input = document.createElement("input");
+      input.name = k;
+      input.value = v;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  }
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -43,11 +79,12 @@ const NextLoginPage = () => {
       localStorage.setItem("refresh", data.refresh);
       localStorage.setItem("expiration", expirationTime.toString());
 
-      toast.success("Successful login");
-      router.push("/detect");
+        window.location.href = 'http://localhost:3000/detect';
+      // toast.success("Successful login");
+      // router.push("/detect");
     } catch (error) {
-      setError("Fail to login");
-      toast.error("Fail to login");
+      setError("Invalid email or password");
+      toast.error("Invalid email or password");
     }
   };
 
@@ -73,12 +110,7 @@ const NextLoginPage = () => {
     await handleLogin(email, password);
   };  
 
-  if (sessionStatus === "loading") {
-    return <h1>Loading...</h1>;
-  }
-
   return (
-    sessionStatus !== "authenticated" && (
       <div className="flex min-h-full flex-1 flex-col justify-center sm:px-6 lg:px-8">
         <div className="flex justify-center flex-col items-center">
           <h2 className="mt-6 text-center text-2xl leading-9 tracking-tight text-gray-900">
@@ -160,31 +192,47 @@ const NextLoginPage = () => {
                   <span className="bg-white px-6 text-gray-900">Or continue with</span>
                 </div>
               </div>
-
               <div className="mt-6 grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => signIn("google")}
-                  className="flex w-full items-center border border-gray-300 justify-center gap-3 rounded-md bg-white px-3 py-1.5 text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
-                  <FcGoogle />
-                  <span className="text-sm font-semibold leading-6">Google</span>
-                </button>
+                {providers?.map((provider) => {
+                  const getButtonProps = (providerId: string) => ({
+                    key: providerId,
+                    onClick: () => handleClick(providerId),
+                  });
+                  if (provider.id === "google") {
+                    return (
+                      <button
+                        {...getButtonProps(provider.id)}
+                        className="flex w-full items-center border border-gray-300 justify-center gap-3 rounded-md bg-white px-3 py-1.5 text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      >
+                        <FcGoogle />
+                        <span className="text-sm font-semibold leading-6">Google</span>
+                      </button>
+                    );
+                  }
 
-                <button
-                  onClick={() => signIn("github")}
-                  className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
-                >
-                  <svg className="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.91-1.296 2.75-1.026 2.75-1.026.545 1.378.203 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.85-2.341 4.688-4.56 4.935.36.305.681.905.681 1.823 0 1.317-.012 2.385-.012 2.705 0 .267.182.578.688.482A10.012 10.012 0 0020 10.017C20 4.484 15.523 0 10 0z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-sm font-semibold leading-6">GitHub</span>
-                </button>
+                  if (provider.id === "github") {
+                    return (
+                      <button
+                        {...getButtonProps(provider.id)}
+                        className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
+                      >
+                        <svg className="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466..."
+                          />
+                        </svg>
+                        <span className="text-sm font-semibold leading-6">GitHub</span>
+                      </button>
+                    );
+                  }
+                  return null;
+                })}
               </div>
             </div>
           </div>
         </div>
       </div>
-    )
   );
 };
 

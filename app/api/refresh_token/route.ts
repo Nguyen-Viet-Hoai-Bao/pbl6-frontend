@@ -24,11 +24,8 @@ export const refreshAccessToken = async (): Promise<boolean> => {
       localStorage.setItem("access", data.access);
       localStorage.setItem("refresh", data.refresh);
       localStorage.setItem("expiration", newExpirationTime.toString());
-      console.log("refresh-token");
       return true; 
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to refresh access token");
       return false;
     }
   } else {
