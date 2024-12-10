@@ -8,9 +8,11 @@ import { FaXmark } from "react-icons/fa6";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { refreshAccessToken } from "@/app/api/refresh_token/route";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -26,36 +28,45 @@ const Navbar = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       const accessToken = localStorage.getItem("access");
-      const expirationTime = localStorage.getItem("expiration");
+      if (accessToken == "undefined") {
+        console.log("Redirect chưa hoàn thành, không fetch user data");
+        router.push("/detect");
+        return;
+      }
 
       if (accessToken) {
-        if (expirationTime && Date.now() < parseInt(expirationTime)) {
-          try {
-            const response = await fetch(`${apiUrl}/users/me`, {
-              method: "GET",
-              headers: {
-                "Authorization": `Bearer ${accessToken}`,
-              },
-            });
+        try {
+          const response = await fetch(`${apiUrl}/users/me`, {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${accessToken}`,
+            },
+          });
 
-            if (!response.ok) {
-              throw new Error("Failed to fetch user data");
-            }
-
-            const data = await response.json();
-            setUser(data.email);
-          } catch (error) {
-            console.error(error);
-            toast.error("Failed to fetch user data");
-          }
-        } else {
-          await refreshAccessToken();
+          const data = await response.json();
+          setUser(data.email);
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed to fetch user data");
         }
       }
     };
 
     fetchUserData();
   }, []);
+
+  
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem("access");
+      localStorage.removeItem("refresh");
+      localStorage.removeItem("expiration");
+
+      window.location.href = 'http://localhost:3000';
+    } catch (error) {
+      toast.error("Fail to logout");
+    }
+  };
 
   return (
     <>
@@ -102,10 +113,7 @@ const Navbar = () => {
                 <span className="ml-10 text-sm">{user}</span>
                 <button
                   onClick={() => {
-                    signOut();
-                    localStorage.removeItem("access");
-                    localStorage.removeItem("refresh");
-                    localStorage.removeItem("expiration");
+                    handleLogout();
                   }}
                   className="hidden lg:block lg:text-sm lg:font-semibold lg:leading-6 lg:text-gray-900"
                 >
@@ -146,10 +154,7 @@ const Navbar = () => {
               {user ? (
                 <button
                   onClick={() => {
-                    signOut();
-                    localStorage.removeItem("access");
-                    localStorage.removeItem("refresh");
-                    localStorage.removeItem("expiration");
+                    handleLogout();
                   }}
                   className="ml-auto rounded-md bg-black border border-1 border-gray-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 >
