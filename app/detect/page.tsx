@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
-import { refreshAccessToken } from '../api/refresh_token/route';
+import { refreshAccessToken } from '../../utils/refreshAccessToken';  // Đảm bảo bạn nhập đúng đường dẫn
+// import { refreshAccessToken } from '../api/refresh_token/route';
+import Image from 'next/image';
 
 export default function Index() {
   const [uploadedImage, setUploadedImage] = useState<string>('');
@@ -101,7 +103,7 @@ export default function Index() {
         </div>
         <label className={styles.uploadArea}>
           {uploadedImage && (
-            <img src={uploadedImage} alt="Uploaded" className={styles.uploadedImage} />
+            <Image src={uploadedImage} alt="Uploaded" className={styles.uploadedImage} />
           )}
           <input
             type="file"
