@@ -7,14 +7,15 @@ import { FaBars } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { refreshAccessToken } from "@/app/api/refresh_token/route";
+// import { refreshAccessToken } from "@/app/api/refresh_token/route";
 import { useRouter } from "next/navigation";
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const baseNavigation = [
     { name: "Dashboard", href: "/dashboard" },
@@ -27,33 +28,28 @@ const Navbar = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      
       const accessToken = localStorage.getItem("access");
       if (accessToken == "undefined") {
-        console.log("Redirect chưa hoàn thành, không fetch user data");
         router.push("/detect");
         return;
       }
 
       if (accessToken) {
-        try {
-          const response = await fetch(`${apiUrl}/users/me`, {
-            method: "GET",
-            headers: {
-              "Authorization": `Bearer ${accessToken}`,
-            },
-          });
+        const response = await fetch(`${apiUrl}/users/me`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+          },
+        });
 
-          const data = await response.json();
-          setUser(data.email);
-        } catch (error) {
-          console.error(error);
-          toast.error("Failed to fetch user data");
-        }
+        const data = await response.json();
+        setUser(data.email);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [apiUrl, router]);
 
   
   const handleLogout = async () => {

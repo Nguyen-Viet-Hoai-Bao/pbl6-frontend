@@ -25,7 +25,6 @@ const NextLoginPage = () => {
         console.log("socialaccount:", data.data.socialaccount);
         setProvider(data.data.socialaccount.providers);
       } catch (err) {
-        console.error("Failed to fetch providers:", err);
         toast.error("Failed to fetch providers");
       }
     };
