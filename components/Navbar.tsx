@@ -28,6 +28,7 @@ const Navbar = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       const accessToken = localStorage.getItem("access");
+      console.log("accessToken: ", accessToken);
       if (accessToken == "undefined") {
         console.log("Redirect chưa hoàn thành, không fetch user data");
         router.push("/detect");

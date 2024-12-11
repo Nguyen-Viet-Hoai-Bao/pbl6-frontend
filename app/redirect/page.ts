@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-const detectkUrl = process.env.NEXT_PUBLIC_DETECT_URL || "";
+const detectUrl = process.env.NEXT_PUBLIC_DETECT_URL || "";
 
 const FetchTokensAndRedirect = () => {
   const router = useRouter();
@@ -27,7 +27,7 @@ const FetchTokensAndRedirect = () => {
         localStorage.setItem("expiration", expirationTime.toString());
 
         toast.success("Login successful!");
-        window.location.href = detectkUrl;
+        window.location.href = detectUrl;
       } catch (error) {
         console.error("Error:", error);
         router.push("/error");
