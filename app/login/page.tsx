@@ -47,6 +47,7 @@ const NextLoginPage = () => {
       provider: id,
       callback_url: "http://localhost:3000/redirect",
     };
+    console.log("data:", data);
 
     Object.entries(data).forEach(([k, v]) => {
       const input = document.createElement("input");
