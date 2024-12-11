@@ -14,7 +14,8 @@ const Navbar = () => {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
+  const url = process.env.NEXT_PUBLIC_URL || "";
+  
   const baseNavigation = [
     { name: "Dashboard", href: "/dashboard" },
     { name: "Profile", href: "/profile" },
@@ -61,7 +62,7 @@ const Navbar = () => {
       localStorage.removeItem("refresh");
       localStorage.removeItem("expiration");
 
-      window.location.href = 'http://localhost:3000';
+      window.location.href = url;
     } catch (error) {
       toast.error("Fail to logout");
     }
