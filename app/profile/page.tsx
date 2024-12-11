@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-// import { refreshAccessToken } from "@/app/api/refresh_token/route";
-import { refreshAccessToken } from '../../utils/refreshAccessToken';  // Đảm bảo bạn nhập đúng đường dẫn
-import Image from 'next/image';
+import { refreshAccessToken } from "@/app/api/refresh_token/route";
 
 const UserProfile = () => {
     const [user, setUser] = useState({
@@ -47,7 +45,7 @@ const UserProfile = () => {
         };
 
         fetchUserProfile();
-    }, [apiUrl]);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -163,7 +161,7 @@ const UserProfile = () => {
     return (
         <div className="flex pt-20 pb-20 flex-1 flex-row justify-center sm:px-8 lg:px-10">
             <div className="w-1/2 pb-20 pr-10 flex flex-col items-center">
-                <Image src={user.avatar} alt="Avatar" className="w-80 h-80 rounded-full mb-4" />
+                <img src={user.avatar} alt="Avatar" className="w-80 h-80 rounded-full mb-4" />
             </div>
 
             <div className="w-1/2 pl-4">

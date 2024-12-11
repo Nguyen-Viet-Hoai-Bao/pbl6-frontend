@@ -1,15 +1,35 @@
-import { NextResponse } from 'next/server';
-import { refreshAccessToken } from '../../../utils/refreshAccessToken';  // Đảm bảo bạn nhập đúng đường dẫn
+import toast from "react-hot-toast";
 
-export async function POST(req: Request) {
-  try {
-    const success = await refreshAccessToken();
-    if (success) {
-      return NextResponse.json({ message: 'Token refreshed successfully' });
-    } else {
-      return NextResponse.error();
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+export const refreshAccessToken = async (): Promise<boolean> => {
+  const refreshToken = localStorage.getItem("refresh");
+
+  if (refreshToken) {
+    try {
+      const response = await fetch(`${apiUrl}/auth/refresh-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to refresh access token");
+      }
+
+      const data = await response.json();
+      const newExpirationTime = Date.now() + 300000;
+      localStorage.setItem("access", data.access);
+      localStorage.setItem("refresh", data.refresh);
+      localStorage.setItem("expiration", newExpirationTime.toString());
+      return true; 
+    } catch (error) {
+      return false;
     }
-  } catch (error) {
-    return NextResponse.error();
+  } else {
+    toast.error("No refresh token available");
+    return false;
   }
-}
+};
