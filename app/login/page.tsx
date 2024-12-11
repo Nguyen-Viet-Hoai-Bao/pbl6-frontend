@@ -11,6 +11,8 @@ const NextLoginPage = () => {
   const [providers, setProvider] = useState<any[]>([]);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const apiUrlAll = process.env.NEXT_PUBLIC_API_URL_ALL;
+  const callbackUrl = process.env.NEXT_PUBLIC_CALLBACK_URL || "";
+
 
   useEffect(() => {
     const fetchProvider = async () => {
@@ -45,7 +47,7 @@ const NextLoginPage = () => {
     form.action = `${apiUrl}/auth/login/socials`;
     const data = {
       provider: id,
-      callback_url: "http://localhost:3000/redirect",
+      callback_url: callbackUrl,
     };
     console.log(data);
 
