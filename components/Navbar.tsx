@@ -7,7 +7,6 @@ import { FaBars } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
 import Image from "next/image";
 import toast from "react-hot-toast";
-import { refreshAccessToken } from "@/app/api/refresh_token/route";
 import { useRouter } from "next/navigation";
 
 const Navbar = () => {
