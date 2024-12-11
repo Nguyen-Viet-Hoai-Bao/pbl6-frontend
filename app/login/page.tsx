@@ -12,7 +12,8 @@ const NextLoginPage = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const apiUrlAll = process.env.NEXT_PUBLIC_API_URL_ALL;
   const callbackUrl = process.env.NEXT_PUBLIC_CALLBACK_URL || "";
-
+  const detectkUrl = process.env.NEXT_PUBLIC_DETECT_URL || "";
+  
   useEffect(() => {
     const fetchProvider = async () => {
       try {
@@ -79,7 +80,7 @@ const NextLoginPage = () => {
       localStorage.setItem("refresh", data.refresh);
       localStorage.setItem("expiration", expirationTime.toString());
 
-        window.location.href = 'http://localhost:3000/detect';
+        window.location.href = detectkUrl;
       // toast.success("Successful login");
       // router.push("/detect");
     } catch (error) {
