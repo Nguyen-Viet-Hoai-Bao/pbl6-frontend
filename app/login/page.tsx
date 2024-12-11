@@ -41,6 +41,7 @@ const NextLoginPage = () => {
   };
 
   async function handleClick(id: string) {
+    console.log("id: ", id);
     const form = document.createElement("form");
     form.style.display = "none";
     form.method = "POST";
