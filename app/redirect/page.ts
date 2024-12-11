@@ -34,7 +34,7 @@ const FetchTokensAndRedirect = () => {
     };
 
     fetchTokens();
-  }, [router]);
+  }, []);
 };
 
 export default FetchTokensAndRedirect;
