@@ -48,7 +48,6 @@ const NextLoginPage = () => {
       provider: id,
       callback_url: callbackUrl,
     };
-    console.log(data);
 
     Object.entries(data).forEach(([k, v]) => {
       const input = document.createElement("input");
