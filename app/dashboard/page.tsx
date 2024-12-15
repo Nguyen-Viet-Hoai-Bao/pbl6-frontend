@@ -1,190 +1,3 @@
-// "use client"; 
-
-// import React, { useEffect, useState } from "react";
-// import { getServerSession } from "next-auth";
-// import { redirect } from "next/navigation";
-// import { Line } from "react-chartjs-2";
-// import { Chart as ChartJS, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, CategoryScale } from "chart.js";
-
-// ChartJS.register(LinearScale, PointElement, LineElement, Title, Tooltip, Legend, CategoryScale);
-
-// const Dashboard = () => {
-//     const [accessData, setAccessData] = useState<number[]>([]);
-//     const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-//     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-//     const [loading, setLoading] = useState<boolean>(true);
-//     const [session, setSession] = useState<any>(null);
-//     const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState<boolean>(false);
-//     const [isYearDropdownOpen, setIsYearDropdownOpen] = useState<boolean>(false);
-
-//     useEffect(() => {
-//         const fetchSession = async () => {
-//             const sessionData = await getServerSession();
-//             if (!sessionData) {
-//                 redirect("/");
-//             } else {
-//                 setSession(sessionData);
-//             }
-//         };
-        
-//         fetchSession();
-//     }, []);
-
-//     useEffect(() => {
-//         const fetchAccessData = async () => {
-//             const mockData = Array.from({ length: 31 }, () => Math.floor(Math.random() * 41) + 10);
-//             const response = {
-//                 ok: true,
-//                 json: async () => mockData,
-//             };
-
-//             if (response.ok) {
-//                 const data = await response.json();
-//                 setAccessData(data);
-//                 setLoading(false); 
-//             } else {
-//                 console.error("Error fetching data");
-//                 setLoading(false);
-//             }
-//         };
-
-//         fetchAccessData();
-//     }, [selectedMonth, selectedYear]);
-
-//     const handleMonthChange = (month: number) => {
-//         setSelectedMonth(month);
-//         setIsMonthDropdownOpen(false); // Đóng dropdown sau khi chọn
-//     };
-
-//     const handleYearChange = (year: number) => {
-//         setSelectedYear(year);
-//         setIsYearDropdownOpen(false); // Đóng dropdown sau khi chọn
-//     };
-
-//     const labels = Array.from({ length: 31 }, (_, i) => i + 1); 
-//     const data = {
-//         labels: labels,
-//         datasets: [
-//             {
-//                 label: "Số lần truy cập",
-//                 data: accessData,
-//                 borderColor: "rgba(75, 192, 192, 1)",
-//                 backgroundColor: "rgba(75, 192, 192, 0.2)",
-//                 fill: true,
-//             },
-//         ],
-//     };
-
-//     return (
-//         <div className="p-9 flex flex-col items-center justify-center space-y-4">
-//             <h1 className="text-5xl max-[500px]:text-2xl">Dashboard</h1>
-//             <div className="flex space-x-4">
-//                 <div className="select-container">
-//                     <div 
-//                         className="select-trigger" 
-//                         onClick={() => setIsMonthDropdownOpen(prev => !prev)}
-//                     >
-//                         Tháng {selectedMonth}
-//                     </div>
-//                     {isMonthDropdownOpen && (
-//                         <div className="select-dropdown">
-//                             {Array.from({ length: 12 }, (_, i) => (
-//                                 <div 
-//                                     key={i} 
-//                                     className="select-option"
-//                                     onClick={() => handleMonthChange(i + 1)}
-//                                 >
-//                                     Tháng {i + 1}
-//                                 </div>
-//                             ))}
-//                         </div>
-//                     )}
-//                 </div>
-
-//                 <div className="select-container">
-//                     <div 
-//                         className="select-trigger" 
-//                         onClick={() => setIsYearDropdownOpen(prev => !prev)}
-//                     >
-//                         {selectedYear}
-//                     </div>
-//                     {isYearDropdownOpen && (
-//                         <div className="select-dropdown">
-//                             {Array.from({ length: selectedYear - 2000 + 1 }, (_, i) => (
-//                                 <div 
-//                                     key={i} 
-//                                     className="select-option"
-//                                     onClick={() => handleYearChange(2000 + i)}
-//                                 >
-//                                     {2000 + i}
-//                                 </div>
-//                             ))}
-//                         </div>
-//                     )}
-//                 </div>
-//             </div>
-//             <div style={{ width: "100%", height: "400px" }} className="flex justify-center items-center">
-//                 {loading ? (
-//                     <p>Loading...</p>
-//                 ) : (
-//                     <Line data={data} />
-//                 )}
-//             </div>
-
-//             <style jsx>{`
-//                 .select-container {
-//                     position: relative;
-//                     width: 100px; /* Chiều rộng có thể điều chỉnh */
-//                 }
-
-//                 .select-trigger {
-//                     display: flex;
-//                     justify-content: center;
-//                     align-items: center;
-//                     border: 2px solid #4f46e5; /* Màu viền */
-//                     border-radius: 8px; /* Đường viền bo tròn */
-//                     background-color: #ffffff; /* Màu nền */
-//                     cursor: pointer;
-//                     transition: border-color 0.3s; /* Hiệu ứng chuyển tiếp */
-//                     font-size: 14px; /* Thay đổi cỡ chữ */
-//                 }
-
-//                 .select-trigger:hover {
-//                     border-color: #3b82f6; /* Màu viền khi hover */
-//                 }
-
-//                 .select-dropdown {
-//                     position: absolute;
-//                     top: 100%;
-//                     left: 0;
-//                     width: 100%; /* Chiều rộng 100% */
-//                     border: 2px solid #4f46e5; /* Màu viền */
-//                     border-radius: 8px; /* Đường viền bo tròn */
-//                     background-color: #ffffff; /* Màu nền */
-//                     max-height: 200px; /* Chiều cao tối đa */
-//                     overflow-y: auto; /* Thanh cuộn dọc */
-//                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng */
-//                     z-index: 10; /* Đảm bảo nó hiển thị trên các phần tử khác */
-//                 }
-
-//                 .select-option {
-//                     padding-left: 10px; /* Padding cho các mục */
-//                     transition: background-color 0.3s; /* Hiệu ứng chuyển tiếp */
-//                     cursor: pointer;
-//                     font-size: 14px; /* Cỡ chữ nhỏ hơn cho các mục */
-//                 }
-
-//                 .select-option:hover {
-//                     background-color: #e5e7eb; /* Màu nền khi hover */
-//                 }
-//             `}</style>
-//         </div>
-//     );
-// };
-
-// export default Dashboard;
-
-
 "use client"; 
 
 import React, { useEffect, useState } from "react";
@@ -193,154 +6,263 @@ import { Chart as ChartJS, LinearScale, PointElement, LineElement, Title, Toolti
 
 ChartJS.register(LinearScale, PointElement, LineElement, Title, Tooltip, Legend, CategoryScale);
 
-const Dashboard = () => {
-    const [accessData, setAccessData] = useState<number[]>([]);
-    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-    const [loading, setLoading] = useState<boolean>(true);
-    const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState<boolean>(false);
-    const [isYearDropdownOpen, setIsYearDropdownOpen] = useState<boolean>(false);
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-    useEffect(() => {
-        const fetchAccessData = async () => {
-            const mockData = Array.from({ length: 31 }, () => Math.floor(Math.random() * 41) + 10);
-            // Bỏ qua phần gọi API thật trong ví dụ này và dùng mock data
-            setAccessData(mockData);
-            setLoading(false); 
-        };
+interface ApiData {
+  id: number;
+  imageUrl: string;
+  predictionType: string;
+  status: string;
+  createdAt: string;
+}
 
-        fetchAccessData();
-    }, [selectedMonth, selectedYear]);
+const Dashboard: React.FC = () => {
+  const [syntheticCounts, setSyntheticCounts] = useState<number[]>(new Array(31).fill(0));
+  const [realCounts, setRealCounts] = useState<number[]>(new Array(31).fill(0));
+  const [loading, setLoading] = useState<boolean>(true);
+  const [apiData, setApiData] = useState<ApiData[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
-    const handleMonthChange = (month: number) => {
-        setSelectedMonth(month);
-        setIsMonthDropdownOpen(false); // Đóng dropdown sau khi chọn
+  // Fetch overview data for the chart
+  useEffect(() => {
+    const fetchAccessOverviewData = async () => {
+        const accessToken = localStorage.getItem("access");
+
+        if (!accessToken) {
+            console.error("Không có access token");
+            return;
+        }
+
+        const response = await fetch(`${apiUrl}/history`, {
+            method: "GET", 
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        const data = await response.json();
+        setApiData(data.results);
+
+        const { syntheticCounts, realCounts } = processApiOverviewData(data.results);
+        setSyntheticCounts(syntheticCounts);
+        setRealCounts(realCounts);
+
+        setLoading(false);
     };
 
-    const handleYearChange = (year: number) => {
-        setSelectedYear(year);
-        setIsYearDropdownOpen(false); // Đóng dropdown sau khi chọn
+    fetchAccessOverviewData();
+}, []);
+
+  // Fetch paginated data for the table
+  useEffect(() => {
+    const fetchTableData = async () => {
+      const accessToken = localStorage.getItem("access");
+
+      if (!accessToken) {
+        console.error("No access token found");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/history?page=${currentPage}&limit=10`, {
+          method: "GET",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        const data = await response.json();
+        const tableData = processTableData(data.results);
+        setApiData(tableData);
+        setTotalPages(data.total_pages || 1);
+      } catch (error) {
+        console.error("Error fetching table data:", error);
+      }
     };
 
-    const labels = Array.from({ length: 31 }, (_, i) => i + 1); 
-    const data = {
-        labels: labels,
-        datasets: [
-            {
-                label: "Số lần truy cập",
-                data: accessData,
-                borderColor: "rgba(75, 192, 192, 1)",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                fill: true,
-            },
-        ],
-    };
+    fetchTableData();
+  }, [currentPage]);
 
-    return (
-        <div className="p-9 flex flex-col items-center justify-center space-y-4">
-            <h1 className="text-5xl max-[500px]:text-2xl">Dashboard</h1>
-            <div className="flex space-x-4">
-                <div className="select-container">
-                    <div 
-                        className="select-trigger" 
-                        onClick={() => setIsMonthDropdownOpen(prev => !prev)}
-                    >
-                        Tháng {selectedMonth}
-                    </div>
-                    {isMonthDropdownOpen && (
-                        <div className="select-dropdown">
-                            {Array.from({ length: 12 }, (_, i) => (
-                                <div 
-                                    key={i} 
-                                    className="select-option"
-                                    onClick={() => handleMonthChange(i + 1)}
-                                >
-                                    Tháng {i + 1}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+  // Process overview data for the chart
+  const processApiOverviewData = (data: any) => {
+    // Khởi tạo mảng chứa số lượng Synthetic và Real cho mỗi ngày
+    const syntheticCounts = new Array(31).fill(0); // 31 ngày
+    const realCounts = new Array(31).fill(0); // 31 ngày
 
-                <div className="select-container">
-                    <div 
-                        className="select-trigger" 
-                        onClick={() => setIsYearDropdownOpen(prev => !prev)}
-                    >
-                        {selectedYear}
-                    </div>
-                    {isYearDropdownOpen && (
-                        <div className="select-dropdown">
-                            {Array.from({ length: selectedYear - 2000 + 1 }, (_, i) => (
-                                <div 
-                                    key={i} 
-                                    className="select-option"
-                                    onClick={() => handleYearChange(2000 + i)}
-                                >
-                                    {2000 + i}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-            <div style={{ width: "100%", height: "400px" }} className="flex justify-center items-center">
-                {loading ? (
-                    <p>Loading...</p>
-                ) : (
-                    <Line data={data} />
-                )}
-            </div>
+    data.forEach((item: any) => {
+        if (item.results && item.results.prediction) {
+            const predictionType = item.results.prediction.type;
+            const createdAt = new Date(item.created_at);
+            const day = createdAt.getDate() - 1; // Lấy ngày trong tháng (0-30)
 
-            <style jsx>{`
-                .select-container {
-                    position: relative;
-                    width: 100px; /* Chiều rộng có thể điều chỉnh */
-                }
+            // Tăng số lượng cho Synthetic hoặc Real theo ngày
+            if (predictionType === "Synthetic") {
+                syntheticCounts[day] += 1;
+            } else if (predictionType === "Real") {
+                realCounts[day] += 1;
+            }
+        }
+    });
 
-                .select-trigger {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    border: 2px solid #4f46e5; /* Màu viền */
-                    border-radius: 8px; /* Đường viền bo tròn */
-                    background-color: #ffffff; /* Màu nền */
-                    cursor: pointer;
-                    transition: border-color 0.3s; /* Hiệu ứng chuyển tiếp */
-                    font-size: 14px; /* Thay đổi cỡ chữ */
-                }
+    return { syntheticCounts, realCounts };
+};
 
-                .select-trigger:hover {
-                    border-color: #3b82f6; /* Màu viền khi hover */
-                }
+  // Process table data for the table
+  const processTableData = (data: any[]) => {
+    return data.map((item: any) => ({
+      id: item.id,
+      imageUrl: item.image_url,
+      predictionType: item.results.prediction.type,
+      status: item.results.status,
+      createdAt: new Date(item.created_at).toLocaleString(),
+    }));
+  };
 
-                .select-dropdown {
-                    position: absolute;
-                    top: 100%;
-                    left: 0;
-                    width: 100%; /* Chiều rộng 100% */
-                    border: 2px solid #4f46e5; /* Màu viền */
-                    border-radius: 8px; /* Đường viền bo tròn */
-                    background-color: #ffffff; /* Màu nền */
-                    max-height: 200px; /* Chiều cao tối đa */
-                    overflow-y: auto; /* Thanh cuộn dọc */
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng */
-                    z-index: 10; /* Đảm bảo nó hiển thị trên các phần tử khác */
-                }
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
-                .select-option {
-                    padding-left: 10px; /* Padding cho các mục */
-                    transition: background-color 0.3s; /* Hiệu ứng chuyển tiếp */
-                    cursor: pointer;
-                    font-size: 14px; /* Cỡ chữ nhỏ hơn cho các mục */
-                }
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
-                .select-option:hover {
-                    background-color: #e5e7eb; /* Màu nền khi hover */
-                }
-            `}</style>
+  const labels = Array.from({ length: 31 }, (_, i) => i + 1); // Days of the month
+
+  const chartData = {
+    labels: labels,
+    datasets: [
+      {
+        label: "Synthetic Predictions",
+        data: syntheticCounts,
+        borderColor: "rgba(255, 99, 132, 1)",
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        fill: true,
+      },
+      {
+        label: "Real Predictions",
+        data: realCounts,
+        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        fill: true,
+      },
+    ],
+  };
+
+  return (
+    <div className="p-9 flex flex-col items-center justify-center space-y-4">
+      <h1 className="text-5xl max-[500px]:text-2xl">Dashboard</h1>
+
+      <div style={{ width: "100%", height: "400px" }} className="flex justify-center items-center">
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <Line data={chartData} />
+        )}
+      </div>
+
+      {/* Table for displaying results */}
+      <div className="table-container mt-8">
+        <h2 className="text-xl mb-4">Danh sách kết quả</h2>
+        <table className="min-w-full table-auto text-sm">
+          <thead>
+            <tr>
+              <th className="border px-4 py-2">ID</th>
+              <th className="border px-4 py-2">Image</th>
+              <th className="border px-4 py-2">Prediction Type</th>
+              <th className="border px-4 py-2">Status</th>
+              <th className="border px-4 py-2">Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {apiData.map((item) => (
+              <tr key={item.id}>
+                <td className="border px-4 py-2">{item.id}</td>
+                <td className="border px-4 py-2">
+                  <img src={item.imageUrl} alt="Prediction" className="w-20 h-20 object-cover" />
+                </td>
+                <td className="border px-4 py-2">{item.predictionType}</td>
+                <td className="border px-4 py-2">{item.status}</td>
+                <td className="border px-4 py-2">{item.createdAt}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Pagination Controls */}
+        <div className="pagination mt-4">
+          <button
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className="btn-pagination"
+          >
+            Previous
+          </button>
+          <span className="mx-2">{currentPage}</span>
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="btn-pagination"
+          >
+            Next
+          </button>
         </div>
-    );
+      </div>
+
+      <style jsx>{`
+        .table-container {
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        th, td {
+          text-align: left;
+          padding: 8px;
+          border: 1px solid #ddd;
+        }
+
+        th {
+          background-color: #f2f2f2;
+        }
+
+        td img {
+          border-radius: 8px;
+        }
+
+        .pagination {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .btn-pagination {
+          padding: 8px 12px;
+          margin: 0 10px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          cursor: pointer;
+          border-radius: 4px;
+        }
+
+        .btn-pagination:disabled {
+          background-color: #d6d6d6;
+          cursor: not-allowed;
+        }
+      `}</style>
+    </div>
+  );
 };
 
 export default Dashboard;
