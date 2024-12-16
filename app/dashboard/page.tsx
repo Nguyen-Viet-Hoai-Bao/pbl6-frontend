@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
@@ -24,81 +24,70 @@ const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  // Fetch overview data for the chart
   useEffect(() => {
-    const fetchAccessOverviewData = async () => {
-        const accessToken = localStorage.getItem("access");
-
-        if (!accessToken) {
-            console.error("Không có access token");
-            return;
-        }
-
-        const response = await fetch(`${apiUrl}/history`, {
-            method: "GET", 
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-
-        const data = await response.json();
-        setApiData(data.results);
-
-        const { syntheticCounts, realCounts } = processApiOverviewData(data.results);
-        setSyntheticCounts(syntheticCounts);
-        setRealCounts(realCounts);
-
-        setLoading(false);
-    };
-
-    fetchAccessOverviewData();
-}, []);
-
-  // Fetch paginated data for the table
-  useEffect(() => {
-    const fetchTableData = async () => {
+    const fetchData = async () => {
       const accessToken = localStorage.getItem("access");
 
       if (!accessToken) {
-        console.error("No access token found");
+        console.error("Không có access token");
         return;
       }
 
-      try {
-        const response = await fetch(`${apiUrl}/history?page=${currentPage}&limit=10`, {
-          method: "GET",
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
+      setLoading(true);
 
-        const data = await response.json();
-        const tableData = processTableData(data.results);
-        setApiData(tableData);
-        setTotalPages(data.total_pages || 1);
+      try {
+        // Fetch data cho cả Overview và Table
+        const [overviewResponse, tableResponse] = await Promise.all([
+          fetch(`${apiUrl}/history`, {
+            method: "GET", 
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            }
+          }),
+          fetch(`${apiUrl}/history?page=${currentPage}&limit=10`, {
+            method: "GET",
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            }
+          })
+        ]);
+
+        // Xử lý kết quả từ API
+        const overviewData = await overviewResponse.json();
+        const tableData = await tableResponse.json();
+
+        // Cập nhật dữ liệu overview
+        const { syntheticCounts, realCounts } = processApiOverviewData(overviewData.results);
+        setSyntheticCounts(syntheticCounts);
+        setRealCounts(realCounts);
+
+        // Cập nhật dữ liệu bảng
+        const processedTableData = processTableData(tableData.results);
+        setApiData(processedTableData);
+        setTotalPages(tableData.total_pages || 1);
+        
       } catch (error) {
-        console.error("Error fetching table data:", error);
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchTableData();
+    fetchData();
   }, [currentPage]);
 
-  // Process overview data for the chart
   const processApiOverviewData = (data: any) => {
-    // Khởi tạo mảng chứa số lượng Synthetic và Real cho mỗi ngày
-    const syntheticCounts = new Array(31).fill(0); // 31 ngày
-    const realCounts = new Array(31).fill(0); // 31 ngày
+    const syntheticCounts = new Array(31).fill(0);
+    const realCounts = new Array(31).fill(0);
 
     data.forEach((item: any) => {
         if (item.results && item.results.prediction) {
             const predictionType = item.results.prediction.type;
             const createdAt = new Date(item.created_at);
-            const day = createdAt.getDate() - 1; // Lấy ngày trong tháng (0-30)
+            const day = createdAt.getDate() - 1;
 
-            // Tăng số lượng cho Synthetic hoặc Real theo ngày
             if (predictionType === "Synthetic") {
                 syntheticCounts[day] += 1;
             } else if (predictionType === "Real") {
@@ -110,7 +99,6 @@ const Dashboard: React.FC = () => {
     return { syntheticCounts, realCounts };
 };
 
-  // Process table data for the table
   const processTableData = (data: any[]) => {
     return data.map((item: any) => ({
       id: item.id,
@@ -133,7 +121,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const labels = Array.from({ length: 31 }, (_, i) => i + 1); // Days of the month
+  const labels = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const chartData = {
     labels: labels,

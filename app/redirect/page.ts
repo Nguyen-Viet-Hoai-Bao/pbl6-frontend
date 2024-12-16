@@ -26,13 +26,13 @@ const FetchTokensAndRedirect = () => {
         localStorage.setItem("refresh", data.refresh);
         localStorage.setItem("expiration", expirationTime.toString());
 
-        var extensionId = "pfmakofgolegonmehffgcfbiehnaolfc";
+        // var extensionId = "pfmakofgolegonmehffgcfbiehnaolfc";
 
-        chrome.runtime.sendMessage(extensionId, {message: "Hello from the webpage!"}, function(response) {
-          if (!response.success) {
-            console.log("Error: " + response.error);
-          }
-        });
+        // chrome.runtime.sendMessage(extensionId, {message: "Hello from the webpage!"}, function(response) {
+        //   if (!response.success) {
+        //     console.log("Error: " + response.error);
+        //   }
+        // });
         
         toast.success("Login successful!");
         window.location.href = detectUrl;
