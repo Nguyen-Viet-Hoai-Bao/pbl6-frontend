@@ -247,13 +247,14 @@ const Dashboard: React.FC = () => {
         }
 
         .btn-pagination {
-          padding: 8px 12px;
+          padding: 4px 18px;
           margin: 0 10px;
           background-color: #007bff;
           color: white;
           border: none;
           cursor: pointer;
           border-radius: 4px;
+          font-size: 0.875rem;
         }
 
         .btn-pagination:disabled {
