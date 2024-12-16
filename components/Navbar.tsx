@@ -19,6 +19,7 @@ const Navbar = () => {
   const baseNavigation = [
     { name: "Dashboard", href: "/dashboard" },
     { name: "Profile", href: "/profile" },
+    { name: "User Keys", href: "/keys" },
   ];
 
   const navigation = user
