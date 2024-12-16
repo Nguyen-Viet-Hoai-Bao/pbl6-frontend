@@ -80,13 +80,6 @@ const NextLoginPage = () => {
       localStorage.setItem("access", data.access);
       localStorage.setItem("refresh", data.refresh);
       localStorage.setItem("expiration", expirationTime.toString());
-
-      // var extensionId = "pfmakofgolegonmehffgcfbiehnaolfc";
-
-      // chrome.runtime.sendMessage(extensionId, {message: "Hello from the webpage!"}, function(response) {
-      //     console.log("extensionId: " + extensionId);
-      // });
-      
       
       window.location.href = detectkUrl;
       // toast.success("Successful login");

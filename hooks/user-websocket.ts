@@ -7,6 +7,11 @@ export const useWebsocket = ({ url, token }: { url: string, token: string }) => 
     const ws = useRef<WebSocket | null>(null)
 
     useEffect(() => {
+        if (!token || typeof token !== 'string' || token.trim() === '') {
+            console.error('Invalid token for WebSocket subprotocol');
+            return;
+        }
+        
         const socket = new WebSocket(url, ["Token", token])
 
         socket.onopen = () => setIsReady(true)

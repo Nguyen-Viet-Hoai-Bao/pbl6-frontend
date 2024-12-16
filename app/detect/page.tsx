@@ -10,32 +10,60 @@ export default function Index() {
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [analysisResult, setAnalysisResult] = useState<string>(''); // Kết quả phân tích
   const [confidenceScore, setConfidenceScore] = useState<string>(''); // Điểm xác suất
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const [token, setToken] = useState<string>("");
-  const [apiKey, setApiKey] = useState<string>("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const access = localStorage.getItem("access") || "";
-      const key = localStorage.getItem("api_key") || "";
-      setToken(access);
-      setApiKey(key);
-    }
+    const access = localStorage.getItem("access") || "";
+    setToken(access);
   }, []);
 
-  const {ready, ws} = useWebsocket({url: "wss://pbl6.site/ws", token:token});
+  const isTokenReady = token && token.trim() !== "";
 
-  useEffect(() => {    
-    if (ready) {
-      if(ws){
-        ws.onmessage = (message)=>{
-          console.log(message);
-        }
-      }
+  const { ready, ws, val, send } = useWebsocket({ url: "wss://pbl6.site/ws", token: isTokenReady ? token : "" });
+
+  useEffect(() => {
+    if (ready && ws) {
+      ws.onmessage = (event) => {
+        setIsLoading(false);
+        const message = JSON.parse(event.data);
+  
+        console.log(message);
+        setUploadedImage(message.image_url);
+        setAnalysisResult(message.prediction.type);
+        setConfidenceScore(message.prediction.confidence_percentage);
+      };
+  
+      ws.onclose = () => {
+        console.log("WebSocket closed, attempting to reconnect...");
+        setIsLoading(false);
+  
+        const reconnectWebSocket = () => {
+          console.log("Reconnecting...");
+          const socket = new WebSocket("wss://pbl6.site/ws", ["Token", token]);
+  
+          socket.onopen = () => {
+            console.log("WebSocket Reconnected");
+          };
+  
+          socket.onclose = () => {
+            console.log("WebSocket closed again, attempting to reconnect...");
+            setTimeout(reconnectWebSocket, 5000); // Thử lại sau 5 giây
+          };
+  
+          socket.onmessage = (event) => {
+            console.log(event.data);
+          };
+        };
+  
+        reconnectWebSocket(); // Gọi hàm để kết nối lại
+      };
     }
-  }, [ready, ws]);
+  }, [ready, ws, token]);
+  
 
   const getMimeType = (file: File) => {
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
@@ -43,46 +71,64 @@ export default function Index() {
   };
 
   const uploadAndPredict = async (file: File, mimeType: string) => {
-    const accessToken = localStorage.getItem("access");
-    if (!accessToken) throw new Error("Missing access token");
-
-    const signedUrlResponse = await fetch(`${apiUrl}/files/signed-url`, {
+    setIsLoading(true);
+  
+    try {
+      const accessToken = localStorage.getItem("access");
+      if (!accessToken) throw new Error("Missing access token");
+  
+      const signedUrlResponse = await fetch(`${apiUrl}/files/signed-url`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ mime_type: mimeType })
-    });
-
-    if (!signedUrlResponse.ok) throw new Error("Failed to get signed URL");
-
+        body: JSON.stringify({ mime_type: mimeType }),
+      });
+  
+      if (!signedUrlResponse.ok) throw new Error("Failed to get signed URL");
+  
       const { upload_url, file_url } = await signedUrlResponse.json();
       console.log(upload_url);
       console.log(file_url);
       setUploadedImage(file_url);
+  
       const uploadResponse = await fetch(upload_url, {
         method: 'PUT',
-        body: file
-    });
-
-    if (!uploadResponse.ok) throw new Error("File upload failed");
-
-    const predictionsResponse = await fetch('/api/predictions', {
+        body: file,
+      });
+  
+      if (!uploadResponse.ok) throw new Error("File upload failed");
+  
+      const key = localStorage.getItem("api_key") || "";
+      console.log("predictions key:", key);
+      console.log("predictions file_url:", file_url);
+      const predictionsResponse = await fetch(`${apiUrl}/predictions`, {
         method: 'POST',
-        body: JSON.stringify({ file_url }),
+        body: JSON.stringify({ image_url: file_url }),
         headers: {
-          'Content-Type': 'application/json', 
-          'x-api-key': apiKey,
-         }
-    });
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+          'x-api-key': key,
+        },
+      });
+  
+      console.log(predictionsResponse);
+    } catch (error: any) {
+      toast.error(error.message || "Error processing file");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+//"{\"image_url\": \"https://storage.googleapis.com/pbl6-dev-media-bucket/f1dfb9d2-513a-43d9-bf21-102442dc2f7f\", 
+// \"status\": \"success\", 
+// \"prediction\": 
+//        {\"type\": \"Real\", 
+//        \"confidence_percentage\": \"0.00%\"
+//      }
+// }"
 
-    const result = await predictionsResponse.json();
-    if (!predictionsResponse.ok) throw new Error("Prediction failed");
-    console.log(result);
-
-    return result;
-};
 
 const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,9 +144,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const mimeType = getMimeType(file);
         console.error("mimeType:", mimeType);
 
-        const result = await uploadAndPredict(file, mimeType);
-        setAnalysisResult(result.analysis);
-        setConfidenceScore(result.confidence);
+        await uploadAndPredict(file, mimeType);
     } catch (error: any) {
         toast.error(error.message || "Error processing file");
     }
@@ -124,9 +168,7 @@ const handlePaste = async (event: ClipboardEvent) => {
             try {
                 const mimeType = getMimeType(file);
                 console.error("mimeType:", mimeType);
-                const result = await uploadAndPredict(file, mimeType);
-                setAnalysisResult(result.analysis);
-                setConfidenceScore(result.confidence);
+                await uploadAndPredict(file, mimeType);
             } catch (error: any) {
                 toast.error(error.message || "Error processing pasted image");
             }
@@ -154,8 +196,14 @@ const handlePaste = async (event: ClipboardEvent) => {
             </p>
         </div>
         <label className={styles.uploadArea}>
-          {uploadedImage && (
-              <img src={uploadedImage} alt="Uploaded" className={styles.uploadedImage} />
+          {isLoading && (
+            <div className={styles.loadingIndicator}>
+              <div className={styles.loader}></div>
+              <p>Loading...</p>
+            </div>
+          )}
+          {!isLoading && uploadedImage && (
+              <img src={uploadedImage} className={styles.uploadedImage} />
           )}
           <input
             type="file"
