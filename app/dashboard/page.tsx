@@ -23,6 +23,7 @@ const Dashboard: React.FC = () => {
   const [apiData, setApiData] = useState<ApiData[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10); // Số kết quả mỗi trang
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,7 +37,6 @@ const Dashboard: React.FC = () => {
       setLoading(true);
 
       try {
-        // Fetch data cho cả Overview và Table
         const [overviewResponse, tableResponse] = await Promise.all([
           fetch(`${apiUrl}/history`, {
             method: "GET", 
@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
               'Authorization': `Bearer ${accessToken}`,
             }
           }),
-          fetch(`${apiUrl}/history?page=${currentPage}&limit=10`, {
+          fetch(`${apiUrl}/history?page=${currentPage}&limit=${limit}`, {
             method: "GET",
             headers: {
               'Content-Type': 'application/json',
@@ -184,6 +184,24 @@ const Dashboard: React.FC = () => {
         </table>
 
         {/* Pagination Controls */}
+        
+        <div className="pagination mt-4">
+          <button 
+              onClick={handlePrevPage} 
+              disabled={currentPage === 1}
+              className="mr-4 rounded-md bg-black px-3 py-2 border border-gray-500 border-1 text-sm font-semibold text-white shadow-sm hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+          >
+              Prev
+          </button>
+          <button 
+              onClick={handleNextPage} 
+              disabled={apiData.length < limit}
+              className="mr-4 rounded-md bg-black px-3 py-2 border border-gray-500 border-1 text-sm font-semibold text-white shadow-sm hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+          >
+              Next
+          </button>
+        </div>
+{/* 
         <div className="pagination mt-4">
           <button
             onClick={handlePrevPage}
@@ -200,7 +218,7 @@ const Dashboard: React.FC = () => {
           >
             Next
           </button>
-        </div>
+        </div> */}
       </div>
 
       <style jsx>{`

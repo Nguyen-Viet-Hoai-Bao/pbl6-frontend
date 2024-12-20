@@ -23,15 +23,14 @@ const Navbar = () => {
 
   const navigation = user
     ? [{ name: "Home", href: "/detect" }, ...baseNavigation]
-    : [{ name: "Home", href: "/" }];
+    : [{ name: "Home", href: "/login" }];
 
   useEffect(() => {
     const fetchUserData = async () => {
       const accessToken = localStorage.getItem("access");
-      console.log("accessToken: ", accessToken);
-      if (accessToken == "undefined") {
+      if (!accessToken || accessToken === "undefined") {
         console.log("Redirect chưa hoàn thành, không fetch user data");
-        router.push("/detect");
+        router.push("/login");
         return;
       }
 
@@ -62,6 +61,7 @@ const Navbar = () => {
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
       localStorage.removeItem("expiration");
+      localStorage.removeItem("api_key");
 
       window.location.href = url;
     } catch (error) {

@@ -36,7 +36,6 @@ const UserProfile = () => {
 
                         const data = await response.json();
                         setUser(data);
-                        console.log(user);
                     } catch (error) {
                         toast.error("Failed to fetch user data");
                     }
@@ -163,7 +162,15 @@ const UserProfile = () => {
     return (
         <div className="flex pt-20 pb-20 flex-1 flex-row justify-center sm:px-8 lg:px-10">
             <div className="w-1/2 pb-20 pr-10 flex flex-col items-center">
-                <Image src={user.avatar} alt="Avatar" className="w-80 h-80 rounded-full mb-4" width={320} height={320}/>
+            {user.avatar && (
+                <Image 
+                    src={user.avatar} 
+                    alt="Avatar" 
+                    className="w-80 h-80 rounded-full mb-4" 
+                    width={320} 
+                    height={320}
+                />
+            )}
             </div>
 
             <div className="w-1/2 pl-4">
