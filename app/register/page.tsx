@@ -13,6 +13,12 @@ const RegisterPage: React.FC = () => {
     return emailRegex.test(email);
   };
 
+  const isValidPassword = (password: string) => {
+    // Regex to enforce at least 8 characters, uppercase, lowercase, and a special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
+    return passwordRegex.test(password);
+  };
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -31,6 +37,12 @@ const RegisterPage: React.FC = () => {
     if (!password || password.length < 8) {
       setError("Password must be at least 8 characters");
       toast.error("Password must be at least 8 characters");
+      return;
+    }
+
+    if (!isValidPassword(password)) {
+      setError("Password must be at least 8 characters long, include uppercase and lowercase letters, and a special character");
+      toast.error("Password must be at least 8 characters long, include uppercase and lowercase letters, and a special character");
       return;
     }
 
@@ -74,14 +86,14 @@ const RegisterPage: React.FC = () => {
   return (
       <div className="flex min-h-full flex-1 flex-col justify-center sm:px-6 lg:px-8">
         <div className="flex justify-center flex-col items-center">
-          <h2 className="mt-6 text-center text-2xl leading-9 tracking-tight text-gray-900">
+          <h2 className="text-center text-2xl leading-9 tracking-tight text-gray-900">
             Sign up on our website
           </h2>
         </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-[480px]">
+          <div className="bg-white px-6 py-6 shadow sm:rounded-lg sm:px-12">
+            <form className="space-y-3" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium leading-6 text-gray-900">
                   First Name
