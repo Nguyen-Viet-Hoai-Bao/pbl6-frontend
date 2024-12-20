@@ -40,6 +40,11 @@ const NextLoginPage = () => {
     return emailRegex.test(email);
   };
 
+  const isValidPassword = (password: string) => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
+    return passwordRegex.test(password);
+  };
+
   async function handleClick(id: string) {
     console.log("id: ", id);
     const form = document.createElement("form");
@@ -103,9 +108,9 @@ const NextLoginPage = () => {
       return;
     }
   
-    if (!password || password.length < 8) {
+    if (!isValidPassword(password)) {
       setError("Password is invalid");
-      toast.error("Password must be at least 8 characters");
+      toast.error("Password must be at least 8 characters long, include uppercase and lowercase letters, and a special character");
       return;
     }
   
