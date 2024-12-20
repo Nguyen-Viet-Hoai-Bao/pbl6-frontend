@@ -196,14 +196,14 @@ const NextLoginPage = () => {
               </div>
               <div className="mt-6 grid grid-cols-2 gap-4">
                 {providers?.map((provider) => {
-                  const getButtonProps = (providerId: string) => ({
-                    key: providerId,
-                    onClick: () => handleClick(providerId),
-                  });
+                  const buttonProps = {
+                    onClick: () => handleClick(provider.id),
+                  };
                   if (provider.id === "google") {
                     return (
                       <button
-                        {...getButtonProps(provider.id)}
+                        key={provider.id}
+                        {...buttonProps}
                         className="flex w-full items-center border border-gray-300 justify-center gap-3 rounded-md bg-white px-3 py-1.5 text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                       >
                         <FcGoogle />
@@ -215,7 +215,8 @@ const NextLoginPage = () => {
                   if (provider.id === "github") {
                     return (
                       <button
-                        {...getButtonProps(provider.id)}
+                        key={provider.id}
+                        {...buttonProps}
                         className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
                       >
                         <svg className="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">

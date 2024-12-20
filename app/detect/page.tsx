@@ -142,7 +142,7 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
     try {
         const mimeType = getMimeType(file);
-        console.error("mimeType:", mimeType);
+        console.log("mimeType:", mimeType);
 
         await uploadAndPredict(file, mimeType);
     } catch (error: any) {
@@ -167,7 +167,7 @@ const handlePaste = async (event: ClipboardEvent) => {
 
             try {
                 const mimeType = getMimeType(file);
-                console.error("mimeType:", mimeType);
+                console.log("mimeType:", mimeType);
                 await uploadAndPredict(file, mimeType);
             } catch (error: any) {
                 toast.error(error.message || "Error processing pasted image");
