@@ -17,7 +17,12 @@ export default function Index() {
   const [token, setToken] = useState<string>("");
 
   useEffect(() => {
+    const api_key = localStorage.getItem("api_key") || "";
+    console.log("detect key: ", api_key);
     const access = localStorage.getItem("access") || "";
+    if (!api_key || api_key === undefined || api_key === "") {
+      toast.error("API key is missing. Please create an API key to proceed.");
+    }
     setToken(access);
   }, []);
 
@@ -31,10 +36,19 @@ export default function Index() {
         setIsLoading(false);
         const message = JSON.parse(event.data);
   
-        console.log(message);
         setUploadedImage(message.image_url);
-        setAnalysisResult(message.prediction.type);
-        setConfidenceScore(message.prediction.confidence_percentage);
+        const predictionType = message.prediction.type;
+        const confidencePercentage = message.prediction.confidence_percentage;
+
+        const confidencePercentageValue = parseFloat(confidencePercentage.replace('%', ''));
+        let calculatedConfidenceScore;
+        if (predictionType === "Real") {
+          calculatedConfidenceScore = 100 - confidencePercentageValue;
+        } else {
+          calculatedConfidenceScore = confidencePercentageValue;
+        }
+        setConfidenceScore(`${calculatedConfidenceScore}%`);
+        setAnalysisResult(predictionType);
       };
   
       ws.onclose = () => {

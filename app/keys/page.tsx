@@ -12,14 +12,14 @@ interface ApiKey {
     api_key_type: string;
     maximum_usage: number;
     total_usage: number;
-    is_default: boolean;
+    is_active: boolean;
 }
 
 const Keys = () => {
     const [apiKeyType, setApiKeyType] = useState<string>("free_tier");
     const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
-    const [currentPage, setCurrentPage] = useState<number>(1); // Trang hiện tại
-    const [limit, setLimit] = useState<number>(5); // Số kết quả mỗi trang
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [limit, setLimit] = useState<number>(5);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     const fetchApiKeys = async () => {
@@ -38,15 +38,20 @@ const Keys = () => {
 
             const data = await response.json();
             setApiKeys(data.results);
+
+            if (data.results.length === 0) {
+                localStorage.removeItem("api_key");
+                localStorage.removeItem("is_active");
+                toast.error("All API keys have been deleted. Please create an API key to proceed.");
+            }
         } catch (error) {
             console.error("Error fetching API keys:", error);
         }
     };
 
-    // Hàm tải danh sách API Key với phân trang
     useEffect(() => {
         fetchApiKeys();
-    }, [currentPage, limit]); // Gọi lại khi currentPage hoặc limit thay đổi
+    }, [currentPage, limit]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -65,11 +70,15 @@ const Keys = () => {
                 },
                 body: JSON.stringify({
                     api_key_type: apiKeyType,
-                    is_default: true,
+                    is_active: true,
                 }),
             });
 
             if (response.ok) {
+                const data = await response.json();
+                console.log("data: ", data);
+                localStorage.setItem("is_active", data.is_active);
+                localStorage.setItem("api_key", data.api_key);
                 toast.success("API Key created successfully!");
                 setCurrentPage(1);
                 fetchApiKeys();
@@ -115,7 +124,7 @@ const Keys = () => {
             return;
         }
 
-        const updatedIsDefault = !isDefault;  // Đảo ngược giá trị is_default
+        const updatedIsDefault = !isDefault;
 
         try {
             const response = await fetch(`${apiUrl}/api-keys/${id}`, {
@@ -124,10 +133,13 @@ const Keys = () => {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${accessToken}`,
                 },
-                body: JSON.stringify({ is_default: updatedIsDefault }),
+                body: JSON.stringify({ is_active: updatedIsDefault }),
             });
 
             if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem("is_active", data.is_active);
+                localStorage.setItem("api_key", data.api_key);
                 fetchApiKeys();
                 toast.success("API Key updated successfully!");
             } else {
@@ -138,7 +150,6 @@ const Keys = () => {
         }
     };
 
-    // Hàm điều hướng đến trang trước và sau
     const handleNextPage = () => setCurrentPage(currentPage + 1);
     const handlePrevPage = () => setCurrentPage(currentPage - 1);
 
@@ -187,14 +198,14 @@ const Keys = () => {
                                 <td className="border px-4 py-2 text-center">{key.id}</td>
                                 <td className="border px-4 py-2 text-center">{key.api_key}</td>
                                 <td className="border px-4 py-2 text-center">{key.api_key_type}</td>
-                                <td className={`border px-4 py-2 text-center ${key.is_default ? "font-bold" : ""}`}>
-                                    {key.is_default ? "Yes" : "No"}
+                                <td className={`border px-4 py-2 text-center ${key.is_active ? "font-bold" : ""}`}>
+                                    {key.is_active ? "Yes" : "No"}
                                 </td>
                                 <td className="border px-4 py-2 text-center">{new Date(key.created_at).toLocaleDateString()}</td>
                                 <td className="border px-4 py-2 text-center">
                                     <button
                                         aria-label={`Update API Key ${key.id}`}
-                                        onClick={() => handleUpdate(key.id, key.is_default)}
+                                        onClick={() => handleUpdate(key.id, key.is_active)}
                                         className="text-blue-500 mr-2"
                                     >
                                         Update
