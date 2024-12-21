@@ -187,7 +187,9 @@ const Keys = () => {
                                 <td className="border px-4 py-2 text-center">{key.id}</td>
                                 <td className="border px-4 py-2 text-center">{key.api_key}</td>
                                 <td className="border px-4 py-2 text-center">{key.api_key_type}</td>
-                                <td className="border px-4 py-2 text-center">{key.is_default ? "Yes" : "No"}</td>
+                                <td className={`border px-4 py-2 text-center ${key.is_default ? "font-bold" : ""}`}>
+                                    {key.is_default ? "Yes" : "No"}
+                                </td>
                                 <td className="border px-4 py-2 text-center">{new Date(key.created_at).toLocaleDateString()}</td>
                                 <td className="border px-4 py-2 text-center">
                                     <button

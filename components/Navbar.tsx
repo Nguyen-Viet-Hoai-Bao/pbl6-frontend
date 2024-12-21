@@ -61,6 +61,7 @@ const Navbar = () => {
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
       localStorage.removeItem("expiration");
+      localStorage.removeItem("is_admin");
       localStorage.removeItem("api_key");
 
       window.location.href = url;
