@@ -173,7 +173,7 @@ const Dashboard: React.FC = () => {
               <tr key={item.id}>
                 <td className="border px-4 py-2">{item.id}</td>
                 <td className="border px-4 py-2">
-                  <img src={item.imageUrl} alt="Prediction" className="w-20 h-20 object-cover" />
+                  <img src={item.imageUrl} alt="Prediction" className="w-20 h-20 object-cover image" />
                 </td>
                 <td className="border px-4 py-2">{item.predictionType}</td>
                 <td className="border px-4 py-2">{item.status}</td>
@@ -201,24 +201,6 @@ const Dashboard: React.FC = () => {
               Next
           </button>
         </div>
-{/* 
-        <div className="pagination mt-4">
-          <button
-            onClick={handlePrevPage}
-            disabled={currentPage === 1}
-            className="btn-pagination"
-          >
-            Previous
-          </button>
-          <span className="mx-2">{currentPage}</span>
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages}
-            className="btn-pagination"
-          >
-            Next
-          </button>
-        </div> */}
       </div>
 
       <style jsx>{`
@@ -244,6 +226,15 @@ const Dashboard: React.FC = () => {
 
         td img {
           border-radius: 8px;
+        }
+
+        .image {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image:hover {
+          transform: scale(1.1);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .pagination {

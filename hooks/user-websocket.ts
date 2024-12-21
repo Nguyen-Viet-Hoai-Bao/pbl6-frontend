@@ -8,7 +8,7 @@ export const useWebsocket = ({ url, token }: { url: string, token: string }) => 
 
     useEffect(() => {
         if (!token || typeof token !== 'string' || token.trim() === '') {
-            console.error('Invalid token for WebSocket subprotocol');
+            console.log('Invalid token for WebSocket subprotocol');
             return;
         }
         

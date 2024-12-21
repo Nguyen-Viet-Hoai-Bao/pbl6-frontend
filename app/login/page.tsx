@@ -40,11 +40,6 @@ const NextLoginPage = () => {
     return emailRegex.test(email);
   };
 
-  const isValidPassword = (password: string) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,}$/;
-    return passwordRegex.test(password);
-  };
-
   async function handleClick(id: string) {
     console.log("id: ", id);
     const form = document.createElement("form");
@@ -100,19 +95,13 @@ const NextLoginPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
-    const form = e.currentTarget as HTMLFormElement; // Type assertion
+    const form = e.currentTarget as HTMLFormElement;
     const email = form.email.value;
     const password = form.password.value;
   
     if (!isValidEmail(email)) {
       setError("Email is invalid");
       toast.error("Email is invalid");
-      return;
-    }
-  
-    if (!isValidPassword(password)) {
-      setError("Password is invalid");
-      toast.error("Password must be at least 8 characters long, include uppercase and lowercase letters, and a special character");
       return;
     }
   
