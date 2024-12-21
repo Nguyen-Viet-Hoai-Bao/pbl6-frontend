@@ -101,8 +101,6 @@ export default function Index() {
       if (!uploadResponse.ok) throw new Error("File upload failed");
   
       const key = localStorage.getItem("api_key") || "";
-      console.log("predictions key:", key);
-      console.log("predictions file_url:", file_url);
       const predictionsResponse = await fetch(`${apiUrl}/predictions`, {
         method: 'POST',
         body: JSON.stringify({ image_url: file_url }),
