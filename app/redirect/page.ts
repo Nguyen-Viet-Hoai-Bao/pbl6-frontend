@@ -24,6 +24,7 @@ const FetchTokensAndRedirect = () => {
         const expirationTime = Date.now() + 300000;
         localStorage.setItem("access", data.access);
         localStorage.setItem("refresh", data.refresh);
+        localStorage.setItem("api_key", data.api_key);
         localStorage.setItem("expiration", expirationTime.toString());
 
         // var extensionId = "pfmakofgolegonmehffgcfbiehnaolfc";
