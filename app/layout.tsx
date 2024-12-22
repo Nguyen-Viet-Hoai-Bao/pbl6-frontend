@@ -18,10 +18,13 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}
-          style={{
-            background: 'linear-gradient(153deg, rgb(229, 155, 255), rgb(178, 255, 237) 74%)',
-          }}>
+      <body 
+        className={inter.className}
+        style={{
+          background: 'linear-gradient(153deg, rgb(229, 155, 255), rgb(178, 255, 237) 74%)',
+          minHeight: '100vh',
+          margin: '0',
+        }}>
           <div className="mx-auto max-w-5xl text-2xl gap-2 mb-20">
             <Navbar />
             <Providers>

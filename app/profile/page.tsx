@@ -37,7 +37,9 @@ const UserProfile = () => {
                         const data = await response.json();
                         setUser(data);
                     } catch (error) {
-                        toast.error("Failed to fetch user data");
+                        toast.error("Failed to fetch user data", {
+                            position: "bottom-center",
+                          });
                     }
                 } else {
                     await refreshAccessToken();
@@ -107,13 +109,19 @@ const UserProfile = () => {
                                     } else {
                                     }
                                 } else {
-                                    toast.error("Failed to upload avatar");
+                                    toast.error("Failed to upload avatar", {
+                                        position: "bottom-center",
+                                      });
                                 }
                             } else {
-                                toast.error("Failed to get signed URL");
+                                toast.error("Failed to get signed URL", {
+                                    position: "bottom-center",
+                                  });
                             }
                         } catch (error) {
-                            toast.error("Error updating avatar");
+                            toast.error("Error updating avatar", {
+                                position: "bottom-center",
+                              });
                         }
                     }
                 };
@@ -144,10 +152,14 @@ const UserProfile = () => {
                     setIsEditing(false);
                     toast.success("User profile updated successfully!");
                 } else {
-                    toast.error("Failed to update user profile");
+                    toast.error("Failed to update user profile", {
+                        position: "bottom-center",
+                      });
                 }
             } catch (error) {
-                toast.error("Error updating user profile");
+                toast.error("Error updating user profile", {
+                    position: "bottom-center",
+                  });
             }
         } else {
             await refreshAccessToken();

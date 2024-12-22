@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from 'react-icons/fa';
 import toast from "react-hot-toast";
 
 const NextLoginPage = () => {
@@ -28,7 +29,9 @@ const NextLoginPage = () => {
         setProvider(data.data.socialaccount.providers);
       } catch (err) {
         console.error("Failed to fetch providers:", err);
-        toast.error("Failed to fetch providers");
+        toast.error("Failed to fetch providers", {
+          position: "bottom-center",
+        });
       }
     };
 
@@ -88,7 +91,9 @@ const NextLoginPage = () => {
       // router.push("/detect");
     } catch (error) {
       setError("Invalid email or password");
-      toast.error("Invalid email or password");
+      toast.error("Invalid email or password", {
+        position: "bottom-center",
+      });
     }
   };
 
@@ -101,7 +106,9 @@ const NextLoginPage = () => {
   
     if (!isValidEmail(email)) {
       setError("Email is invalid");
-      toast.error("Email is invalid");
+      toast.error("Email is invalid", {
+        position: "bottom-center",
+      });
       return;
     }
   
@@ -215,12 +222,7 @@ const NextLoginPage = () => {
                         {...buttonProps}
                         className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
                       >
-                        <svg className="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fillRule="evenodd"
-                            d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466..."
-                          />
-                        </svg>
+                        <FaGithub className="h-5 w-5" aria-hidden="true" />
                         <span className="text-sm font-semibold leading-6">GitHub</span>
                       </button>
                     );

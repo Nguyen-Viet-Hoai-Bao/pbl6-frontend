@@ -20,7 +20,9 @@ export default function Index() {
     const api_key = localStorage.getItem("api_key") || "";
     const access = localStorage.getItem("access") || "";
     if (!api_key || api_key === undefined || api_key === "") {
-      toast.error("API key is missing. Please create an API key to proceed.");
+      toast.error("API key is missing. Please create an API key to proceed.", {
+        position: "bottom-center",
+      });
     }
     setToken(access);
   }, []);
