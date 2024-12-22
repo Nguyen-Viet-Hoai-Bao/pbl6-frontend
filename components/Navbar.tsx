@@ -78,10 +78,6 @@ const Navbar = () => {
           aria-label="Global"
         >
           <div className="flex lg:flex-1">
-            <Link href="/" className="-m-1.5 p-1.5">
-              <span className="sr-only">Your Company</span>
-              <Image src="/logo 1.png" width={50} height={50} alt="star logo" />
-            </Link>
           </div>
           <div className="hidden lg:flex lg:gap-x-12">
             {navigation.map((item) => (

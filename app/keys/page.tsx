@@ -38,12 +38,6 @@ const Keys = () => {
 
             const data = await response.json();
             setApiKeys(data.results);
-
-            if (data.results.length === 0) {
-                localStorage.removeItem("api_key");
-                localStorage.removeItem("is_active");
-                toast.error("All API keys have been deleted. Please create an API key to proceed.");
-            }
         } catch (error) {
             console.error("Error fetching API keys:", error);
         }
